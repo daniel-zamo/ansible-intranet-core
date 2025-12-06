@@ -1,0 +1,7 @@
+---
+collections:
+  # Solo dejamos lo que el playbook necesita
+  - name: community.docker
+    version: 3.10.1
+  - name: ansible.posix
+    version: 1.5.4

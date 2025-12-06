@@ -1,0 +1,14 @@
+# Python & Venv
+.venv/
+__pycache__/
+*.pyc
+
+# Ansible Artifacts
+*.retry
+collections/ansible_collections/
+
+# Secrets & Keys
+*.pem
+*.key
+.env
+secrets.yml

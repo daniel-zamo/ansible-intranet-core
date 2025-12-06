@@ -1,0 +1,93 @@
+---
+- name: Aprovisionamiento de Stack LAMP
+  hosts: app_servers
+  become: true
+
+  # [NUEVO] Cargamos las variables desde la estructura estándar
+  vars_files:
+    - "../group_vars/all.yml"
+
+  # [ELIMINADO] Ya no hay bloque 'vars' aquí, está todo externalizado.
+
+  tasks:
+    # --- GESTIÓN DE ARCHIVOS ---
+    - name: Crear directorios de proyecto
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        mode: "0755"
+        recurse: yes
+      loop:
+        - "{{ remote_project_path }}/html"
+
+    - name: Desplegar código fuente (PHP)
+      ansible.builtin.copy:
+        src: "../src/"
+        dest: "{{ remote_project_path }}/html/"
+        mode: "0644"
+
+    - name: Copiar Dockerfile al servidor remoto
+      ansible.builtin.copy:
+        src: "../Dockerfile"
+        dest: "{{ remote_project_path }}/Dockerfile"
+        mode: "0644"
+
+    # --- INFRAESTRUCTURA DOCKER ---
+    - name: Crear Red Docker Aislada
+      community.docker.docker_network:
+        name: "{{ project_name }}-net"
+        driver: bridge
+
+    - name: Crear Volumen de Persistencia DB
+      community.docker.docker_volume:
+        name: "{{ project_name }}-db-data"
+
+    - name: Construir imagen PHP personalizada
+      community.docker.docker_image:
+        name: "{{ custom_image_name }}"
+        tag: latest
+        build:
+          path: "{{ remote_project_path }}"
+        source: build
+        force_source: true
+
+    - name: Desplegar Base de Datos (MariaDB)
+      community.docker.docker_container:
+        name: "{{ project_name }}-db"
+        image: mariadb:10.6
+        state: started
+        restart_policy: always
+        networks:
+          - name: "{{ project_name }}-net"
+        env:
+          MARIADB_ROOT_PASSWORD: "{{ mysql_root_pass }}"
+          MARIADB_DATABASE: "{{ mysql_db }}"
+          MARIADB_USER: "{{ mysql_user }}"
+          MARIADB_PASSWORD: "{{ mysql_pass }}"
+        volumes:
+          - "{{ project_name }}-db-data:/var/lib/mysql"
+        labels:
+          com.role: "database"
+
+    - name: Desplegar Servidor Web (Imagen Custom)
+      community.docker.docker_container:
+        name: "{{ project_name }}-web"
+        image: "{{ custom_image_name }}:latest"
+        state: started
+        restart_policy: always
+        ports:
+          - "80:80"
+        networks:
+          - name: "{{ project_name }}-net"
+
+        # [NUEVO] Inyectamos las variables de entorno al contenedor
+        env:
+          DB_HOST: "{{ project_name }}-db" # Nombre del contenedor de DB (DNS interno)
+          DB_NAME: "{{ mysql_db }}"
+          DB_USER: "{{ mysql_user }}"
+          DB_PASSWORD: "{{ mysql_pass }}"
+
+        volumes:
+          - "{{ remote_project_path }}/html:/var/www/html"
+        labels:
+          com.role: "frontend"

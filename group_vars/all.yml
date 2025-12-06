@@ -1,0 +1,18 @@
+---
+# ==========================================
+# CONFIGURACIÓN GLOBAL DEL PROYECTO
+# ==========================================
+# Identidad del Proyecto
+project_name: "intranet-core"
+remote_project_path: "/opt/{{ project_name }}"
+custom_image_name: "{{ project_name }}-custom-php"
+
+# ==========================================
+# CREDENCIALES (SANITIZADAS PARA REPO PÚBLICO)
+# ==========================================
+# En un entorno real, usaríamos Ansible Vault.
+# Para este demo, rellenar antes de ejecutar.
+mysql_root_pass: "CHANGE_ME"
+mysql_db: "intranet_db"
+mysql_user: "app_user"
+mysql_pass: "CHANGE_ME"

@@ -1,0 +1,4 @@
+[app_servers]
+# Reemplazar con la IP Pública real o DNS
+## (RFC 5737 para con esta demo)
+203.0.113.10 ansible_user=admin_user ansible_ssh_private_key_file=~/.ssh/prod_key
