@@ -5,7 +5,8 @@
 
   # [NUEVO] Cargamos las variables desde la estructura estándar
   vars_files:
-    - "../group_vars/all.yml"
+    - "../group_vars/all.yml"       # Carga estructura y valores dummy
+    - "../group_vars/secrets.yml"   # Sobreescribe con contraseñas reales
 
   # [ELIMINADO] Ya no hay bloque 'vars' aquí, está todo externalizado.
 

@@ -11,4 +11,6 @@ collections/ansible_collections/
 *.pem
 *.key
 .env
-secrets.yml
+
+#secrets.yml
+group_vars/secrets.yml
